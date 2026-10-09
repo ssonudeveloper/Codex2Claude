@@ -1,0 +1,29 @@
+#!/bin/sh
+# Runs codex2claude.py with the first Python 3.8+ on this machine.
+# Claude desktop app: its sidebar lists only sessions it has a record for, in %APPDATA%, which Microsoft Store Python
+# can't see. So this script stages what Python needs (newest record as a template, deleted-session markers) in a
+# folder Python can reach, then moves the new records Python wrote into the app's folder, never overwriting one.
+root="$(dirname "$0")/.."
+if [ -z "$C2C_DESKTOP_DIR" ] && [ -n "$APPDATA" ] && [ -n "$CLAUDE_CODE_ACCOUNT_UUID" ]; then
+  C2C_DESKTOP_DIR="$APPDATA/Claude/claude-code-sessions/$CLAUDE_CODE_ACCOUNT_UUID/$CLAUDE_CODE_ORGANIZATION_UUID"
+fi
+if [ -d "$C2C_DESKTOP_DIR" ]; then
+  C2C_STAGE="${CLAUDE_PLUGIN_DATA:-$HOME/.claude}/desktop-stage"
+  rm -rf "$C2C_STAGE" && mkdir -p "$C2C_STAGE/out" || exit 1
+  newest=$(ls -t "$C2C_DESKTOP_DIR"/local_*.json 2>/dev/null | head -1)
+  [ -n "$newest" ] && cp "$newest" "$C2C_STAGE/template.json"
+  ls "$C2C_DESKTOP_DIR" | grep '^deleted_' > "$C2C_STAGE/deleted.txt"
+  export C2C_STAGE
+fi
+for py in python3 python; do
+  if "$py" -S -c "import sys; sys.exit(sys.version_info < (3, 8))" 2>/dev/null; then
+    "$py" "$root/codex2claude.py" "$@"
+    rc=$?
+    for f in "${C2C_STAGE:-/nonexistent}"/out/*.json; do
+      [ -e "$f" ] && [ ! -e "$C2C_DESKTOP_DIR/${f##*/}" ] && mv "$f" "$C2C_DESKTOP_DIR/"
+    done
+    exit $rc
+  fi
+done
+echo "codex2claude needs Python 3.8 or newer: https://www.python.org/downloads/" >&2
+exit 1

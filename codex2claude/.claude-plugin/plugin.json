@@ -1,0 +1,6 @@
+{
+  "name": "codex2claude",
+  "version": "0.3.0",
+  "description": "Bring your OpenAI Codex conversations, memories, skills, AGENTS.md and MCP servers into Claude Code",
+  "author": { "name": "Sonu Pandey" }
+}

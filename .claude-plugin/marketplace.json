@@ -1,0 +1,12 @@
+{
+  "name": "codex2claude",
+  "owner": { "name": "Sonu Pandey" },
+  "description": "Tools for moving from OpenAI Codex to Claude Code",
+  "plugins": [
+    {
+      "name": "codex2claude",
+      "source": "./codex2claude",
+      "description": "Bring your OpenAI Codex conversations, memories, skills, AGENTS.md and MCP servers into Claude Code"
+    }
+  ]
+}
